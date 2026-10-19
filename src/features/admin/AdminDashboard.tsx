@@ -12,6 +12,7 @@ import { FareRulesConfig } from './FareRulesConfig';
 import { PromotionsManager } from './PromotionsManager';
 import { AuditLogsView } from './AuditLogsView';
 import { AppwriteConsoleGuide } from './AppwriteConsoleGuide';
+import { RealtimeDashboardView } from './RealtimeDashboardView';
 import {
   LayoutDashboard,
   Shield,
@@ -21,12 +22,13 @@ import {
   ShieldCheck,
   Database,
   Lock,
+  Radio,
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
   const { user, role, switchDemoRole } = useAuth();
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'captains' | 'rides' | 'pricing' | 'promotions' | 'audit' | 'setup'
+    'overview' | 'captains' | 'rides' | 'pricing' | 'promotions' | 'audit' | 'realtime' | 'setup'
   >('overview');
 
   // Strict Role Gate: If not admin, render secure promotion / switch screen
@@ -139,6 +141,18 @@ export const AdminDashboard: React.FC = () => {
             </button>
 
             <button
+              onClick={() => setActiveTab('realtime')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer text-left ${
+                activeTab === 'realtime'
+                  ? 'bg-neutral-800 text-white font-semibold shadow-sm'
+                  : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+              }`}
+            >
+              <Radio className="w-4 h-4 text-emerald-400" />
+              <span>Realtime WebSocket Stream</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab('setup')}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer text-left ${
                 activeTab === 'setup'
@@ -165,6 +179,7 @@ export const AdminDashboard: React.FC = () => {
         {activeTab === 'pricing' && <FareRulesConfig />}
         {activeTab === 'promotions' && <PromotionsManager />}
         {activeTab === 'audit' && <AuditLogsView />}
+        {activeTab === 'realtime' && <RealtimeDashboardView />}
         {activeTab === 'setup' && <AppwriteConsoleGuide />}
       </main>
     </div>

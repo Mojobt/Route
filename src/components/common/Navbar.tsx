@@ -11,9 +11,10 @@ import { UserRole } from '../../types';
 
 interface NavbarProps {
   onOpenAppwriteSetup: () => void;
+  onOpenRealtimeMonitor: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenAppwriteSetup }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenAppwriteSetup, onOpenRealtimeMonitor }) => {
   const { user, role, logout, switchDemoRole, isAppwriteConnected } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -76,6 +77,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAppwriteSetup }) => {
           >
             Admin
           </Link>
+          <button
+            onClick={onOpenRealtimeMonitor}
+            className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-emerald-300 transition-colors whitespace-nowrap shrink-0 cursor-pointer group"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span>Realtime Live</span>
+          </button>
           <button
             onClick={onOpenAppwriteSetup}
             className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-amber-300 transition-colors whitespace-nowrap shrink-0 cursor-pointer"

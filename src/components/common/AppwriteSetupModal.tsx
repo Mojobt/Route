@@ -21,7 +21,7 @@ export const AppwriteSetupModal: React.FC<AppwriteSetupModalProps> = ({ isOpen, 
   const [storageBucketId, setStorageBucketId] = useState(currentConfig.storageBucketId);
   const [apiKey, setApiKey] = useState('');
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<'config' | 'schema' | 'script'>('config');
+  const [activeTab, setActiveTab] = useState<'config' | 'schema' | 'script' | 'realtime'>('config');
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   if (!isOpen) return null;
@@ -108,6 +108,16 @@ export const AppwriteSetupModal: React.FC<AppwriteSetupModalProps> = ({ isOpen, 
             }`}
           >
             Automated Node.js Setup Script
+          </button>
+          <button
+            onClick={() => setActiveTab('realtime')}
+            className={`py-3 border-b-2 transition-colors cursor-pointer ${
+              activeTab === 'realtime'
+                ? 'border-pink-500 text-pink-400 font-semibold'
+                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            Realtime WebSocket Sync
           </button>
         </div>
 
@@ -266,6 +276,59 @@ export const AppwriteSetupModal: React.FC<AppwriteSetupModalProps> = ({ isOpen, 
               <pre className="p-4 bg-neutral-950 rounded-xl border border-neutral-800 text-emerald-400 font-mono text-[11px] overflow-x-auto max-h-[45vh]">
                 {setupScript}
               </pre>
+            </div>
+          )}
+
+          {activeTab === 'realtime' && (
+            <div className="space-y-4">
+              <div className="bg-neutral-950 p-4 rounded-xl border border-neutral-800 space-y-2">
+                <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  <span>Realtime WebSocket Channels Protocol</span>
+                </div>
+                <p className="text-neutral-400 leading-relaxed text-[11px]">
+                  RideFlow listens to official Appwrite Realtime WebSocket channels at{' '}
+                  <code className="text-white font-mono bg-neutral-900 px-1 py-0.5 rounded">
+                    {endpoint.replace('https://', 'wss://').replace('http://', 'ws://')}/realtime
+                  </code>
+                  . Any database change on rides, messages, or driver locations is pushed instantaneously to all clients.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-neutral-400 uppercase font-semibold text-[10px]">
+                  Subscribed Appwrite Channels Pattern:
+                </span>
+                <div className="bg-neutral-950 p-3 rounded-xl border border-neutral-800 space-y-2 font-mono text-[11px]">
+                  <p className="text-pink-300">databases.{databaseId}.collections.rides.documents</p>
+                  <p className="text-pink-300">databases.{databaseId}.collections.messages.documents</p>
+                  <p className="text-pink-300">databases.{databaseId}.collections.ride_locations.documents</p>
+                  <p className="text-pink-300">databases.{databaseId}.collections.captain_profiles.documents</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-neutral-400 uppercase font-semibold text-[10px]">
+                  Client Implementation (appwrite SDK):
+                </span>
+                <pre className="p-4 bg-neutral-950 rounded-xl border border-neutral-800 text-neutral-300 font-mono text-[11px] overflow-x-auto">
+{`import { Client } from 'appwrite';
+
+const client = new Client()
+  .setEndpoint('${endpoint}')
+  .setProject('${projectId}');
+
+// Listen to all ride updates, dispatches, and GPS telemetry
+client.subscribe([
+  'databases.${databaseId}.collections.rides.documents',
+  'databases.${databaseId}.collections.messages.documents',
+  'databases.${databaseId}.collections.ride_locations.documents'
+], (response) => {
+  console.log('Appwrite Realtime Event:', response.events);
+  console.log('Updated Record:', response.payload);
+});`}
+                </pre>
+              </div>
             </div>
           )}
         </div>

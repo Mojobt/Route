@@ -27,6 +27,7 @@ import {
 } from '../types';
 import { client, account, databases, ID, Query } from '../lib/appwrite/client';
 import { getAppwriteConfig, isAppwriteConfigured } from '../lib/appwrite/config';
+import { realtimeEngine, RealtimeEventPayload } from '../lib/appwrite/realtime';
 
 // Real-time broadcast channel for instant multi-window/multi-role sync
 const broadcastChannel = typeof window !== 'undefined' && 'BroadcastChannel' in window
@@ -352,12 +353,19 @@ function setStorage<T>(key: string, val: T): void {
   localStorage.setItem(key, JSON.stringify(val));
 }
 
-// Global broadcast dispatcher
+// Initialize Appwrite Realtime subscriptions
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    realtimeEngine.initRealtime();
+  }, 100);
+}
+
+// Global broadcast dispatcher wired to Appwrite Realtime Engine
 function notifyRealtime(eventType: string, payload: any) {
+  realtimeEngine.publishEvent(eventType, payload);
   if (broadcastChannel) {
     broadcastChannel.postMessage({ type: eventType, payload, timestamp: Date.now() });
   }
-  // Also dispatch window custom event for same-tab subscribers
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('rideflow_event', { detail: { type: eventType, payload } }));
   }
@@ -976,8 +984,26 @@ export const RideFlowService = {
     return log;
   },
 
-  // Subscribe to real-time sync across portals
+  // Subscribe to real-time sync across portals & Appwrite WebSocket
   subscribeToEvents(callback: (event: { type: string; payload: any }) => void): () => void {
+    // 1. Direct Appwrite Realtime Engine subscription
+    const unsubscribeRealtime = realtimeEngine.subscribe((packet) => {
+      // Map Appwrite Realtime events if standard format
+      let type = 'REALTIME_UPDATE';
+      if (packet.event.includes('RIDE_') || packet.event.includes('CAPTAIN_') || packet.event.includes('CHAT') || packet.event.includes('PING')) {
+        const parts = packet.event.split('.');
+        type = parts[parts.length - 1];
+      } else if (packet.channel.includes('rides')) {
+        type = 'RIDE_STATUS_UPDATED';
+      } else if (packet.channel.includes('messages')) {
+        type = 'NEW_CHAT_MESSAGE';
+      } else if (packet.channel.includes('ride_locations')) {
+        type = 'RIDE_LOCATION_PING';
+      }
+      callback({ type, payload: packet.payload });
+    });
+
+    // 2. Broadcast Channel for multi-tab fallback
     const channelHandler = (e: MessageEvent) => {
       if (e.data && e.data.type) {
         callback(e.data);
@@ -998,6 +1024,7 @@ export const RideFlowService = {
     }
 
     return () => {
+      unsubscribeRealtime();
       if (broadcastChannel) {
         broadcastChannel.removeEventListener('message', channelHandler);
       }

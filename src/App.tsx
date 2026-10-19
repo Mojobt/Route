@@ -9,6 +9,7 @@ import { AuthProvider } from './context/AuthContext';
 import { RideProvider } from './context/RideContext';
 import { Navbar } from './components/common/Navbar';
 import { AppwriteSetupModal } from './components/common/AppwriteSetupModal';
+import { RealtimeMonitorModal } from './components/common/RealtimeMonitorModal';
 
 // Pages
 import { LandingPage } from './pages/LandingPage';
@@ -31,6 +32,7 @@ import { AdminDashboard } from './features/admin/AdminDashboard';
 
 export default function App() {
   const [setupModalOpen, setSetupModalOpen] = useState(false);
+  const [realtimeMonitorOpen, setRealtimeMonitorOpen] = useState(false);
 
   return (
     <BrowserRouter>
@@ -38,7 +40,10 @@ export default function App() {
         <RideProvider>
           <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col font-sans">
             {/* Top Navigation conforming to Top Bar Contract */}
-            <Navbar onOpenAppwriteSetup={() => setSetupModalOpen(true)} />
+            <Navbar
+              onOpenAppwriteSetup={() => setSetupModalOpen(true)}
+              onOpenRealtimeMonitor={() => setRealtimeMonitorOpen(true)}
+            />
 
             {/* Application Routes */}
             <main className="flex-1 flex flex-col">
@@ -75,6 +80,9 @@ export default function App() {
 
             {/* Appwrite Connection & Schema Inspector Modal */}
             <AppwriteSetupModal isOpen={setupModalOpen} onClose={() => setSetupModalOpen(false)} />
+
+            {/* Appwrite Realtime Diagnostics & Live Packet Stream */}
+            <RealtimeMonitorModal isOpen={realtimeMonitorOpen} onClose={() => setRealtimeMonitorOpen(false)} />
           </div>
         </RideProvider>
       </AuthProvider>
