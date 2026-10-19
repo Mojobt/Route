@@ -1,0 +1,6 @@
+{
+  "name": "RideFlow - On-Demand Ride Sharing Platform",
+  "description": "Production-grade ride-sharing platform with dedicated Passenger, Captain (Driver), and Admin workspaces powered by Appwrite.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
